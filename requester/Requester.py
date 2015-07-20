@@ -7,6 +7,7 @@
 import urllib
 import urllib2
 import cookielib
+import ssl
 
 
 class Requester:
@@ -25,7 +26,11 @@ class Requester:
 
     DEFAULT_ACCEPT = 'application/json, text/plain, */*'
 
-    def __init__(self, host, agent=None, referer=None, accept=None):
+    def __init__(self, host,
+                 agent=None,
+                 referer=None,
+                 accept=None,
+                 force_ssl=None):
 
         self._host = host
         self._agent = agent
@@ -45,12 +50,11 @@ class Requester:
             self._accept = self.DEFAULT_ACCEPT
 
         self._opener = None         # OpenerDirector
-        self._cookie_jar = None     # CookieJar
         self._headers = None
 
         self.request_headers()
 
-        self._set_cookie_jar()
+        self._configure_opener(force_ssl=force_ssl)
 
         pass
 
@@ -99,16 +103,30 @@ class Requester:
 
         return
 
-    def _set_cookie_jar(self):
+    def _configure_opener(self, force_ssl=False):
         """
         Initializes _cookie_jar and _opener for a persistent session.
+
+        :param force_ssl: Adds a handler supporting no ssl verification
         """
-        self._cookie_jar = cookielib.CookieJar()
-        self._opener = urllib2.build_opener(
-            urllib2.HTTPCookieProcessor(self._cookie_jar))
+        cookie_jar = cookielib.CookieJar()
+
+        if force_ssl:
+            unverified_context = ssl._create_unverified_context()
+
+            self._opener = urllib2.build_opener(
+                urllib2.HTTPCookieProcessor(cookie_jar),
+                urllib2.HTTPSHandler(context=unverified_context)
+            )
+
+        else:
+            self._opener = urllib2.build_opener(
+                urllib2.HTTPCookieProcessor(cookie_jar)
+            )
+
         self._opener.addheaders = self._headers
 
-    def open_request(self, request, post_fields=None, timeout=None):
+    def open_request(self, request='', post_fields=None, timeout=None):
         """
         Opens request and returns response.
         If parameter opener is not empty opens by urlopen else opens by opener.
@@ -125,6 +143,9 @@ class Requester:
         :raise Exception
         :return HTTP Response
         """
+        if not request:
+            request = self._host
+
         if post_fields is not None:
             data = urllib.urlencode(post_fields)
         else:
