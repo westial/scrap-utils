@@ -13,10 +13,6 @@ import ssl
 class Requester:
     """
     Transmission class.
-    Used statically to open and read pages.
-    Used as instance to login and bid managing cookies.
-    :param host: string
-    :param agent: string
     """
 
     DEFAULT_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:31.0) Gecko/20130' \
@@ -31,6 +27,14 @@ class Requester:
                  referer=None,
                  accept=None,
                  force_ssl=None):
+        """
+        Constructor
+        
+        :param agent: str HTTP Agent header
+        :param referer: str HTTP Referer header
+        :param accept: str HTTP Accept header
+        :param force_ssl: bool bypass SSL verification
+        """
 
         self._host = host
         self._agent = agent
