@@ -1,6 +1,5 @@
 """Function test methods testing the image samples
 """
-import json
 import unittest
 
 from requester.Requester import Requester
