@@ -8,11 +8,13 @@
 # configured according to the php form destination.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 from requester.Requester import Requester
 
 EXPECTED_RESULT = 'OK'
 
-print 'Submitting php form...'
+print('Submitting php form...')
 
 requester = Requester(host='https://localhost/test/scrap-utils/form.php',
                       referer='http://leadtech.com',
@@ -29,10 +31,10 @@ response = requester.open_request(post_fields=post_fields)
 result = requester.read_response(response=response)
 
 if result != EXPECTED_RESULT:
-    print 'ERROR: Result is not as expected.'
+    print('ERROR: Result is not as expected.')
     exit(1)
 
 else:
-    print 'SUCCESS: Result is "{!s}" as expected'.format(result)
+    print('SUCCESS: Result is "{!s}" as expected'.format(result))
     exit(0)
 
