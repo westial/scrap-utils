@@ -31,7 +31,10 @@ class TestCases(unittest.TestCase):
             'text_field': self.submit_content,
             'submit': 'Submit'
         }
-        response = requester.open_request(post_fields=post_fields)
+        response = requester.open_request(
+            post_fields=post_fields,
+            redirect_reuse=True
+        )
         result = requester.read_response(response=response)
 
         self.assertEqual(result, self.submit_content)

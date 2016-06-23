@@ -7,6 +7,9 @@
 from __future__ import absolute_import
 
 import re
+from http import cookies as cookieslib
+from urllib.parse import urljoin
+
 import urllib3
 
 import certifi
@@ -65,6 +68,8 @@ class Requester:
 
         self._configure_opener(force_ssl=force_ssl)
 
+        self._cookies = cookieslib.SimpleCookie()
+
         pass
 
     @property
@@ -111,7 +116,13 @@ class Requester:
                 ca_certs=certifi.where()
             )
 
-    def open_request(self, url='', post_fields=None, timeout=None, **kwargs):
+    def open_request(
+            self,
+            url='',
+            post_fields=None,
+            timeout=None,
+            redirect_reuse=None,
+            **kwargs):
         """
         Opens request and returns response.
         If parameter opener is not empty opens by urlopen else opens by opener.
@@ -121,6 +132,7 @@ class Requester:
         :param url: string url
         :param post_fields: dict post data fields, if it's none the used method
         :param timeout: int connection timeout
+        :param redirect_reuse: bool
         :param kwargs: keyword arguments
 
         :raise HTTPError
@@ -128,6 +140,8 @@ class Requester:
         :raise Exception
         :return HTTP Response
         """
+        kwargs["redirect"] = False
+
         if not url:
             url = self._host
 
@@ -158,6 +172,13 @@ class Requester:
                 )
 
             self._update_headers(url, response)
+            response = self._redirect_response(
+                url,
+                redirect_reuse,
+                response,
+                timeout=timeout,
+                **kwargs
+            )
 
         except urllib3.exceptions.HTTPError:
             raise
@@ -166,6 +187,36 @@ class Requester:
             raise
 
         return response
+
+    def _redirect_response(self, url, redirect_reuse, response, timeout=None,
+                           **kwargs):
+        """
+        Overrides the urllib3 redirect because we need to reuse some headers
+        of the last request and response, like the cookies.
+
+        Returns the response after. If no redirect, returns the original
+        response.
+
+        :param url: str
+        :param redirect_reuse: bool
+        :param response: HTTP Response
+        :return HTTP Response
+        """
+        redirect_location = redirect_reuse and response.get_redirect_location()
+
+        if not redirect_location:
+            return response
+
+        # Support relative URLs for redirecting.
+        redirect_location = urljoin(url, redirect_location)
+
+        return self.open_request(
+            redirect_location,
+            post_fields=None,
+            timeout=timeout,
+            redirect_reuse=redirect_reuse,
+            **kwargs
+        )
 
     def _update_headers(self, referer, response):
         """
@@ -182,7 +233,11 @@ class Requester:
         Sets cookies on context opener for the given response.
         :param response: HTTP Response
         """
-        self._headers['Cookie'] = response.getheader('set-cookie')
+        response_cookies = response.getheader('set-cookie')
+        if not response_cookies:
+            return
+        self._cookies.load(response_cookies)
+        self._headers['Cookie'] = self._cookies.output(attrs=[], header='').strip()
 
     def _set_referer(self, referer):
         """

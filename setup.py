@@ -15,5 +15,6 @@ setup(
     install_requires=[
         'urllib3',
         'certifi',
+        'cookiejar'
     ]
 )

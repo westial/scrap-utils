@@ -3,6 +3,7 @@
  * Basic php form to test the Requester on POST mode.
  * To make it work this script must be executable by the web server.
  */
+
 function printHead()
 {
     foreach (getallheaders() as $name => $value) {
@@ -24,17 +25,32 @@ function printRequest()
 }
 //printRequest();
 
+if (isset($_GET['redirected']) && $_GET['redirected'])
+{
+    if (isset($_COOKIE['TestCookie']))
+    {
+        echo $_GET['redirected'];
+    } else {
+        echo "ERROR: Redirected but cookie is missing";
+    }
+    exit();
+}
+
 if (isset($_POST['submit']) && $_POST['submit'])
 {
     if (isset($_COOKIE['TestCookie']))
     {
-        echo $_POST['text_field'];
+        header(
+            sprintf("Location: form.php?redirected=%s", $_POST['text_field']),
+            TRUE,
+            302
+        );
     } else {
-        var_dump($_COOKIE);
+        echo "ERROR: Submitted but cookie is missing";
     }
-    exit();
 } else {
     setcookie("TestCookie", "yes");
+    setcookie("TestDoubleCookie", "gmail=CiMACWuJV8PDMAnZ1jWV0CR0qmhQiYG8p_fVEKejDVOrbduOThCdnK-7BQ; expires=Sun, 03-Jul-2016 10:55:22 GMT; path=/mail; Secure; HttpOnly");
 }
 ?>
 <html>
