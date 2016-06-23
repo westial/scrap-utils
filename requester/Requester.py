@@ -26,7 +26,8 @@ class Requester:
 
     DEFAULT_LANG = "en-US,en;q=0.5"
 
-    def __init__(self, host,
+    def __init__(self,
+                 host=None,
                  agent=None,
                  referer=None,
                  accept=None,
