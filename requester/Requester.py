@@ -61,9 +61,9 @@ class Requester:
         if not lang:
             self._lang = self.DEFAULT_LANG
 
-        self._cookies = dict()
+        self._headers = self._get_default_headers()
 
-        self._opener = None         # OpenerDirector
+        self._opener = None
 
         self._configure_opener(force_ssl=force_ssl)
 
@@ -103,16 +103,14 @@ class Requester:
         if force_ssl:
             self._opener = urllib3.PoolManager(
                 cert_reqs='CERT_NONE',
-                assert_hostname=False,
-                headers=self._get_default_headers()
+                assert_hostname=False
             )
             urllib3.disable_warnings()
 
         else:
             self._opener = urllib3.PoolManager(
                 cert_reqs='CERT_REQUIRED',
-                ca_certs=certifi.where(),
-                headers=self._get_default_headers()
+                ca_certs=certifi.where()
             )
 
     def open_request(self, url='', post_fields=None, timeout=None, **kwargs):
@@ -132,11 +130,6 @@ class Requester:
         :raise Exception
         :return HTTP Response
         """
-        if self._cookies:
-            request_headers = self._cookies
-        else:
-            request_headers = None
-
         if not url:
             url = self._host
 
@@ -153,7 +146,7 @@ class Requester:
                     url,
                     fields=post_fields,
                     timeout=timeout_,
-                    headers=request_headers,
+                    headers=self._headers,
                     **kwargs
                 )
 
@@ -162,11 +155,11 @@ class Requester:
                     'GET',
                     url,
                     timeout=timeout_,
-                    headers=request_headers,
+                    headers=self._headers,
                     **kwargs
                 )
 
-            self._set_cookies(response)
+            self._update_headers(url, response)
 
         except urllib3.exceptions.HTTPError:
             raise
@@ -176,12 +169,29 @@ class Requester:
 
         return response
 
+    def _update_headers(self, referer, response):
+        """
+        Prepares headers for next request with the last response
+        :param referer: str
+        :param response: HTTP Response
+        :return:
+        """
+        self._set_referer(referer)
+        self._set_cookies(response)
+
     def _set_cookies(self, response):
         """
         Sets cookies on context opener for the given response.
         :param response: HTTP Response
         """
-        self._cookies['Cookie'] = response.getheader('set-cookie')
+        self._headers['Cookie'] = response.getheader('set-cookie')
+
+    def _set_referer(self, referer):
+        """
+        Sets referer to headers for next request.
+        :param referer: str
+        """
+        self._headers['Referer'] = referer
 
     @classmethod
     def _parse_charset(cls, response):
