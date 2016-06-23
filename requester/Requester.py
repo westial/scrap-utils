@@ -117,7 +117,7 @@ class Requester:
                 headers=self._get_default_headers()
             )
 
-    def open_request(self, url='', post_fields=None, timeout=None):
+    def open_request(self, url='', post_fields=None, timeout=None, **kwargs):
         """
         Opens request and returns response.
         If parameter opener is not empty opens by urlopen else opens by opener.
@@ -126,8 +126,8 @@ class Requester:
 
         :param url: string url
         :param post_fields: dict post data fields, if it's none the used method
-        :param content_type: str
         :param timeout: int connection timeout
+        :param kwargs: keyword arguments
 
         :raise HTTPError
         :raise URLError
@@ -152,7 +152,8 @@ class Requester:
                     url,
                     fields=post_fields,
                     timeout=timeout_,
-                    headers=request_headers
+                    headers=request_headers,
+                    **kwargs
                 )
 
             else:
@@ -160,7 +161,8 @@ class Requester:
                     'GET',
                     url,
                     timeout=timeout_,
-                    headers=request_headers
+                    headers=request_headers,
+                    **kwargs
                 )
 
             self._set_cookies(response)
