@@ -38,7 +38,7 @@ if (isset($_GET['redirected']) && $_GET['redirected'])
 
 if (isset($_POST['submit']) && $_POST['submit'])
 {
-    if (isset($_COOKIE['TestCookie']))
+    if (isset($_COOKIE['TestCookie']) && isset($_COOKIE['TestThirdCookie']) && isset($_COOKIE['TestSecondCookie']))
     {
         header(
             sprintf("Location: form.php?redirected=%s", $_POST['text_field']),
@@ -47,6 +47,7 @@ if (isset($_POST['submit']) && $_POST['submit'])
         );
     } else {
         echo "ERROR: Submitted but cookie is missing";
+        var_dump($_COOKIE);
     }
 } else {
     setcookie("TestCookie", "yes");
