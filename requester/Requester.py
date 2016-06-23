@@ -47,9 +47,6 @@ class Requester:
         self._referer = referer
         self._accept = accept
 
-        if not host:
-            raise ValueError('Host is mandatory')
-
         if not agent:
             self._agent = self.DEFAULT_AGENT
 
