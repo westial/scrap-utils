@@ -231,7 +231,7 @@ class Requester:
         :param response: HTTP Response
         """
         cookie_header = ""
-        default_separator = ";"
+        default_separator = "; "
         separator = ""
         response_cookies = response.getheader('set-cookie')
         if not response_cookies:
