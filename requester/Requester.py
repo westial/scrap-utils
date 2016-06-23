@@ -3,16 +3,14 @@
 #
 # Transmission class
 #
-
 from __future__ import absolute_import
 
 import re
+import urllib3
+import certifi
+
 from http import cookies as cookieslib
 from urllib.parse import urljoin
-
-import urllib3
-
-import certifi
 
 
 class Requester:

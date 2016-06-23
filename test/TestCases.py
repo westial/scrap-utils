@@ -1,5 +1,7 @@
 """Function test methods testing the image samples
 """
+import sys
+sys.path.append('..')
 import unittest
 
 from requester.Requester import Requester
