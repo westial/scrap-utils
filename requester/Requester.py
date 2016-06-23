@@ -134,7 +134,10 @@ class Requester:
         :raise Exception
         :return HTTP Response
         """
-        request_headers = self._cookies
+        if self._cookies:
+            request_headers = self._cookies
+        else:
+            request_headers = None
 
         if not url:
             url = self._host
