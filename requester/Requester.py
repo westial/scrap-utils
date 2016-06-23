@@ -84,11 +84,9 @@ class Requester:
         """
         headers = dict()
 
-        headers["Host"] = self._host
         headers["User-Agent"] = self._agent
         headers["Accept"] = self._accept
         headers["Accept-Language"] = self._lang
-        headers["Accept-Encoding"] = "gzip, deflate, br"
         headers["Connection"] = "keep-alive"
         headers["Cache-Control"] = "max-age=0"
         headers["Referer"] = self._referer
