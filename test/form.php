@@ -50,7 +50,8 @@ if (isset($_POST['submit']) && $_POST['submit'])
     }
 } else {
     setcookie("TestCookie", "yes");
-    setcookie("TestDoubleCookie", "gmail=CiMACWuJV8PDMAnZ1jWV0CR0qmhQiYG8p_fVEKejDVOrbduOThCdnK-7BQ; expires=Sun, 03-Jul-2016 10:55:22 GMT; path=/mail; Secure; HttpOnly");
+    setcookie("TestThirdCookie", "uJV8PDMAnZ1jWV0iuyiiYG8p_fVEKejDVOrbduOT876867");
+    setcookie("TestSecondCookie", "CWuJV8PDMAnZ1jWV0CR0qmhQiYG8p_fVEKejDVOr765765Q", time() + 3600, '/', 'localhost', true, true);
 }
 ?>
 <html>

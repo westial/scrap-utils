@@ -89,7 +89,6 @@ class Requester:
         headers["Accept"] = self._accept
         headers["Accept-Language"] = self._lang
         headers["Connection"] = "keep-alive"
-        headers["Cache-Control"] = "max-age=0"
         headers["Referer"] = self._referer
 
         return headers
@@ -231,11 +230,22 @@ class Requester:
         Sets cookies on context opener for the given response.
         :param response: HTTP Response
         """
+        cookie_header = ""
+        default_separator = "\015\012"
+        separator = ""
         response_cookies = response.getheader('set-cookie')
         if not response_cookies:
             return
         self._cookies.load(response_cookies)
-        self._headers['Cookie'] = self._cookies.output(header='').strip()
+        for cookie_name, cookie in self._cookies.items():
+            cookie_header += "{!s}{!s}={!s}".format(
+                separator,
+                cookie_name,
+                # why first cookie always ends with a comma
+                cookie.coded_value.strip(",")
+            )
+            separator = default_separator
+        self._headers['Cookie'] = cookie_header.strip()
 
     def _set_referer(self, referer):
         """
