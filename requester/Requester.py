@@ -235,7 +235,7 @@ class Requester:
         if not response_cookies:
             return
         self._cookies.load(response_cookies)
-        self._headers['Cookie'] = self._cookies.output(attrs=[], header='').strip()
+        self._headers['Cookie'] = self._cookies.output(header='').strip()
 
     def _set_referer(self, referer):
         """
