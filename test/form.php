@@ -25,6 +25,18 @@ function printRequest()
 }
 //printRequest();
 
+function printCookies()
+{
+    if (isset($_COOKIE))
+    {
+        echo "<ul>";
+        foreach ($_COOKIE as $name => $value) {
+            echo "<li>$name: $value</li>";
+        }
+        echo "</ul>";
+    }
+}
+
 if (isset($_GET['redirected']) && $_GET['redirected'])
 {
     if (isset($_COOKIE['TestCookie']))
@@ -52,7 +64,7 @@ if (isset($_POST['submit']) && $_POST['submit'])
         var_dump($_COOKIE);
     }
 } else {
-    setcookie("TestSecondCookie", "CWuJV8PDMAnZ1jWV0CR0qmhQiYG8p_fVEKejDVOr765765Q", time() + 3600, '/', 'localhost', true, true);
+    setcookie("TestSecondCookie", "CWuJV8PDMAnZ1jWV0CR0qmhQiYG8p_fVEKejDVOr765765Q", time() + 3600, '/');
     setcookie("TestCookie", $cookie_name);
     setcookie("TestThirdCookie", "uJV8PDMAnZ1jWV0iuyiiYG8p_fVEKejDVOrbduOT876867");
 }

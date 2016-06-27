@@ -26,7 +26,7 @@ class TestCases(unittest.TestCase):
         # Get page and cookie
         response = requester.open_request()
 
-        self.assertEqual(response.status, 200)
+        self.assertEqual(response.status_code, 200)
 
         # Submit form with cookie
         post_fields = {
@@ -34,8 +34,7 @@ class TestCases(unittest.TestCase):
             'submit': 'Submit'
         }
         response = requester.open_request(
-            post_fields=post_fields,
-            redirect_reuse=True
+            post_fields=post_fields
         )
         result = requester.read_response(response=response)
 
