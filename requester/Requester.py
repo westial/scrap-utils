@@ -187,6 +187,9 @@ class Requester(object):
         Sets cookies on context opener for the given response.
         :param response: HTTP Response
         """
+        if len(response.history):
+            self._cookies.update(response.history[0].cookies)
+
         self._cookies.update(response.cookies)
 
     def _set_referer(self, referer):
