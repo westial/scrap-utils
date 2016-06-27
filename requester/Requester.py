@@ -24,7 +24,7 @@ class LoaderCookie(cookieslib.SimpleCookie):
     def load(self, rawdata):
         super().load(rawdata)
 
-        if True:
+        if rawdata and not self.output():
             if isinstance(rawdata, str):
                 self.__parse_string(rawdata)
             else:
