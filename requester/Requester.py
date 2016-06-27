@@ -188,9 +188,9 @@ class Requester(object):
         :param response: HTTP Response
         """
         if len(response.history):
-            self._cookies.update(response.history[0].cookies)
+            self._cookies.update(dict(response.history[0].cookies))
 
-        self._cookies.update(response.cookies)
+        self._cookies.update(dict(response.cookies))
 
     def _set_referer(self, referer):
         """
