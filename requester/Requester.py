@@ -23,7 +23,7 @@ class Requester:
 
     DEFAULT_REFERER = 'http://www.westial.com'
 
-    DEFAULT_ACCEPT = 'Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    DEFAULT_ACCEPT = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
 
     DEFAULT_LANG = "en-US,en;q=0.5"
 
@@ -77,6 +77,14 @@ class Requester:
         :return: object
         """
         return self._opener
+
+    def update_headers(self, new_headers: dict):
+        """
+        Updates the context headers with the given ones.
+
+        :param new_headers: dict
+        """
+        self._headers.update(new_headers)
 
     def _get_default_headers(self):
         """
