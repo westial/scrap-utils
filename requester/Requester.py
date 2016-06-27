@@ -168,6 +168,7 @@ class Requester:
                 )
 
             else:
+                self._filter_no_post_url_kwargs(kwargs)
                 response = self.opener.request(
                     'GET',
                     url,
@@ -192,6 +193,19 @@ class Requester:
             raise
 
         return response
+
+    @classmethod
+    def _filter_no_post_url_kwargs(cls, kwargs):
+        """
+        Method urllib3.request.RequestMethods#request_encode_body has some
+        not accessible function parameters that I'm passing through the url
+        keyword arguments. There is any parameters of those that causes
+        conflicts when the request method call is not POST. This little ugly
+        filter is the best way I can remove those conflicts.
+        :param kwargs: kwargs
+        """
+        if 'encode_multipart' in kwargs:
+            del kwargs['encode_multipart']
 
     def _redirect_response(self, url, redirect_reuse, response, timeout=None,
                            **kwargs):
