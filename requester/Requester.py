@@ -3,14 +3,14 @@
 #
 # Transmission class
 #
+from __future__ import absolute_import
 
-import urllib
-import urllib2
-import cookielib
-import ssl
+import re
+import requests as requests
+import urllib3
 
 
-class Requester:
+class Requester(object):
     """
     Transmission class.
     """
@@ -18,14 +18,19 @@ class Requester:
     DEFAULT_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:31.0) Gecko/20130' \
                     '401 Firefox/31.0'
 
-    DEFAULT_REFERER = 'https://www.google.com'
+    DEFAULT_REFERER = 'http://www.westial.com'
 
-    DEFAULT_ACCEPT = 'application/json, text/plain, */*'
+    DEFAULT_ACCEPT = 'text/html,application/xhtml+xml,application/xml;q=0.9,' \
+                     '*/*;q=0.8'
 
-    def __init__(self, host,
+    DEFAULT_LANG = "en-US,en;q=0.5"
+
+    def __init__(self,
+                 host=None,
                  agent=None,
                  referer=None,
                  accept=None,
+                 lang=None,
                  force_ssl=None):
         """
         Constructor
@@ -41,9 +46,6 @@ class Requester:
         self._referer = referer
         self._accept = accept
 
-        if not host:
-            raise ValueError('Host is mandatory')
-
         if not agent:
             self._agent = self.DEFAULT_AGENT
 
@@ -53,12 +55,16 @@ class Requester:
         if not accept:
             self._accept = self.DEFAULT_ACCEPT
 
-        self._opener = None         # OpenerDirector
-        self._headers = None
+        if not lang:
+            self._lang = self.DEFAULT_LANG
 
-        self.request_headers()
+        self._opener = None
 
-        self._configure_opener(force_ssl=force_ssl)
+        self._verify = not force_ssl
+
+        self._session = requests.Session()
+
+        self.update_headers(self._get_default_headers())
 
         pass
 
@@ -68,100 +74,73 @@ class Requester:
         Returns the protected attribute opener
         :return: object
         """
-        return self._opener
+        return self._session
 
-    @property
-    def headers(self):
+    def update_headers(self, new_headers: dict):
         """
-        Returns the protected attribute headers
-        :return: object
-        """
-        return self._headers
+        Updates the context headers with the given ones.
 
-    @headers.setter
-    def headers(self, value):
+        :param new_headers: dict
         """
-        Sets the protected attribute headers
+        self.opener.headers.update(new_headers)
 
-        :param value: list
-        :return: object
-        """
-        self._headers = value
-        pass
-
-    def request_headers(self):
+    def _get_default_headers(self):
         """
         Sets request headers based on different modes
-        :return list<tuple>
+        :return dict
         """
+        headers = dict()
 
-        self._headers = [
-            ("Host", self._host),
-            ("User-Agent", self._agent),
-            ("Accept", self._accept),
-            ("Accept-Language", "en-US,en;q=0.5"),
-            ("Connection", "keep-alive"),
-            ("Pragma", "no-cache"),
-            ("Cache-Control", "no-cache"),
-            ("Referer", self._referer)]
+        headers["User-Agent"] = self._agent
+        headers["Accept"] = self._accept
+        headers["Accept-Language"] = self._lang
+        headers["Connection"] = "keep-alive"
+        headers["Referer"] = self._referer
 
-        return
+        return headers
 
-    def _configure_opener(self, force_ssl=False):
-        """
-        Initializes _cookie_jar and _opener for a persistent session.
-
-        :param force_ssl: Adds a handler supporting no ssl verification
-        """
-        cookie_jar = cookielib.CookieJar()
-
-        if force_ssl:
-            unverified_context = ssl._create_unverified_context()
-
-            self._opener = urllib2.build_opener(
-                urllib2.HTTPCookieProcessor(cookie_jar),
-                urllib2.HTTPSHandler(context=unverified_context)
-            )
-
-        else:
-            self._opener = urllib2.build_opener(
-                urllib2.HTTPCookieProcessor(cookie_jar)
-            )
-
-        self._opener.addheaders = self._headers
-
-    def open_request(self, request='', post_fields=None, timeout=None):
+    def open_request(
+            self,
+            url='',
+            post_fields=None,
+            timeout=None):
         """
         Opens request and returns response.
         If parameter opener is not empty opens by urlopen else opens by opener.
         HTTP request will be a POST instead of a GET when the data parameter is
         provided.
 
-        :param request: string url
+        :param url: string url
         :param post_fields: dict post data fields, if it's none the used method
-        :param timeout: int
-        will be get.
+        :param timeout: int connection timeout
 
         :raise HTTPError
         :raise URLError
         :raise Exception
         :return HTTP Response
         """
-        if not request:
-            request = self._host
 
-        if post_fields is not None:
-            data = urllib.urlencode(post_fields)
-        else:
-            data = post_fields
+        if not url:
+            url = self._host
 
         try:
-            response = self.opener.open(request, data, timeout)
 
-        except urllib2.HTTPError:
-            raise
+            if post_fields:
+                response = self.opener.post(
+                    url,
+                    data=post_fields,
+                    timeout=timeout,
+                    verify=self._verify
+                )
 
-        except urllib2.URLError:
+            else:
+                response = self.opener.get(
+                    url,
+                    timeout=timeout,
+                    verify=self._verify
+                )
+
+        except urllib3.exceptions.HTTPError:
             raise
 
         except Exception:
@@ -170,14 +149,56 @@ class Requester:
         return response
 
     @classmethod
+    def _filter_no_post_url_kwargs(cls, kwargs):
+        """
+        Method urllib3.request.RequestMethods#request_encode_body has some
+        not accessible function parameters that I'm passing through the url
+        keyword arguments. There is any parameters of those that causes
+        conflicts when the request method call is not POST. This little ugly
+        filter is the best way I can remove those conflicts.
+        :param kwargs: kwargs
+        """
+        if 'encode_multipart' in kwargs:
+            del kwargs['encode_multipart']
+
+    @classmethod
+    def _parse_charset(cls, response):
+        """
+        Parses charset by the given HTTP response. Returns utf-8 as default.
+        :return: str
+        """
+        default = "utf-8"
+        possibles = [
+            "Content-Type",
+            "Content-type",
+            "content-type"
+        ]
+
+        while possibles:
+            search = possibles.pop()
+
+            if search in response.headers:
+                content_type = response.headers[search]
+                match = re.match(
+                    ".*charset=([^;]*)",
+                    content_type,
+                    re.IGNORECASE
+                )
+                if match:
+                    return match.group(1)
+
+        return default
+
+    @classmethod
     def read_response(cls, response):
         """
         Gets page content by url
         :param response: HTTP Response
         :return: string
         """
+        charset = cls._parse_charset(response)
         try:
-            content = response.read()
+            content = response.content.decode(charset)
 
         except Exception:
             raise

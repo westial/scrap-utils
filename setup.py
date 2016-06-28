@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 version_file = open('VERSION', 'r')
 version = version_file.readline()
@@ -11,5 +11,9 @@ setup(
     license='GPL v3',
     author='Jaume Mila',
     author_email='jaume@westial.com',
-    description='Python utils for scraping purposes.'
+    description='Python utils for scraping purposes.',
+    install_requires=[
+        'urllib3',
+        'requests'
+    ]
 )
