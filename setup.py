@@ -14,7 +14,6 @@ setup(
     description='Python utils for scraping purposes.',
     install_requires=[
         'urllib3',
-        'certifi',
-        'cookiejar'
+        'requests'
     ]
 )

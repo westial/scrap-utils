@@ -6,7 +6,6 @@
 from __future__ import absolute_import
 
 import re
-
 import requests as requests
 import urllib3
 
@@ -59,13 +58,13 @@ class Requester(object):
         if not lang:
             self._lang = self.DEFAULT_LANG
 
-        self._headers = self._get_default_headers()
-
         self._opener = None
 
-        self._cookies = dict()
-
         self._verify = not force_ssl
+
+        self._session = requests.Session()
+
+        self.update_headers(self._get_default_headers())
 
         pass
 
@@ -75,7 +74,7 @@ class Requester(object):
         Returns the protected attribute opener
         :return: object
         """
-        return self
+        return self._session
 
     def update_headers(self, new_headers: dict):
         """
@@ -83,7 +82,7 @@ class Requester(object):
 
         :param new_headers: dict
         """
-        self._headers.update(new_headers)
+        self.opener.headers.update(new_headers)
 
     def _get_default_headers(self):
         """
@@ -104,15 +103,13 @@ class Requester(object):
             self,
             url='',
             post_fields=None,
-            timeout=None,
-            allow_redirects=True):
+            timeout=None):
         """
         Opens request and returns response.
         If parameter opener is not empty opens by urlopen else opens by opener.
         HTTP request will be a POST instead of a GET when the data parameter is
         provided.
 
-        :param allow_redirects:
         :param url: string url
         :param post_fields: dict post data fields, if it's none the used method
         :param timeout: int connection timeout
@@ -129,27 +126,19 @@ class Requester(object):
         try:
 
             if post_fields:
-                response = requests.post(
+                response = self.opener.post(
                     url,
                     data=post_fields,
                     timeout=timeout,
-                    headers=self._headers,
-                    cookies=self._cookies,
-                    allow_redirects=allow_redirects,
                     verify=self._verify
                 )
 
             else:
-                response = requests.get(
+                response = self.opener.get(
                     url,
                     timeout=timeout,
-                    headers=self._headers,
-                    cookies=self._cookies,
-                    allow_redirects=allow_redirects,
                     verify=self._verify
                 )
-
-            self._update_headers(url, response)
 
         except urllib3.exceptions.HTTPError:
             raise
@@ -171,33 +160,6 @@ class Requester(object):
         """
         if 'encode_multipart' in kwargs:
             del kwargs['encode_multipart']
-
-    def _update_headers(self, referer, response):
-        """
-        Prepares headers for next request with the last response
-        :param referer: str
-        :param response: HTTP Response
-        :return:
-        """
-        self._set_referer(referer)
-        self._set_cookies(response)
-
-    def _set_cookies(self, response):
-        """
-        Sets cookies on context opener for the given response.
-        :param response: HTTP Response
-        """
-        if len(response.history):
-            self._cookies.update(dict(response.history[0].cookies))
-
-        self._cookies.update(dict(response.cookies))
-
-    def _set_referer(self, referer):
-        """
-        Sets referer to headers for next request.
-        :param referer: str
-        """
-        self._headers['Referer'] = referer
 
     @classmethod
     def _parse_charset(cls, response):
