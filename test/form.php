@@ -3,39 +3,8 @@
  * Basic php form to test the Requester on POST mode.
  * To make it work this script must be executable by the web server.
  */
+ require("functions.php");
 $cookie_name = "my name is cookie";
-function printHead()
-{
-    foreach (getallheaders() as $name => $value) {
-        echo "$name: $value\n";
-    }
-}
-//printHead();
-
-function printRequest()
-{
-    if (isset($_POST))
-    {
-        echo "<ul>";
-        foreach ($_POST as $name => $value) {
-            echo "<li>$name: $value</li>";
-        }
-        echo "</ul>";
-    }
-}
-//printRequest();
-
-function printCookies()
-{
-    if (isset($_COOKIE))
-    {
-        echo "<ul>";
-        foreach ($_COOKIE as $name => $value) {
-            echo "<li>$name: $value</li>";
-        }
-        echo "</ul>";
-    }
-}
 
 if (isset($_GET['redirected']) && $_GET['redirected'])
 {

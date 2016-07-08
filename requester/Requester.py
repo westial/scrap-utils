@@ -5,6 +5,7 @@
 #
 from __future__ import absolute_import
 
+import json
 import re
 import requests as requests
 import urllib3
@@ -68,6 +69,23 @@ class Requester(object):
 
         pass
 
+    def _is_content_type_json(self):
+        pattern = '.*application/json(?:;.*|$)'
+        headers_ = [
+            'content-type',
+            'Content-type',
+            'Content-Type',
+        ]
+        return self.header_contains(headers_, pattern)
+
+    def header_contains(self, headers_, pattern):
+        while headers_:
+            header = headers_.pop()
+            if header in self.opener.headers:
+                if re.match(pattern, self.opener.headers[header]):
+                    return True
+        return False
+
     @property
     def opener(self):
         """
@@ -126,6 +144,8 @@ class Requester(object):
         try:
 
             if post_fields:
+                if self._is_content_type_json():
+                    post_fields = json.dumps(post_fields)
                 response = self.opener.post(
                     url,
                     data=post_fields,
