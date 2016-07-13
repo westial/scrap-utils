@@ -220,6 +220,9 @@ class Requester(object):
         try:
             content = response.content.decode(charset)
 
+        except UnicodeDecodeError:
+            content = response.content
+
         except Exception:
             raise
 
