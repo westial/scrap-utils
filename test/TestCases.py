@@ -67,5 +67,19 @@ class TestCases(unittest.TestCase):
 
         self.assertEqual(result, self.submit_content)
 
+    def test_get_with_proxy(self):
+        # ZAP or other proxy on port 8080 must be started before
+        requester = Requester(
+            host='http://docs.python-requests.org/en/master/user/advanced/',
+            referer=self.default_referer,
+            accept=self.accept,
+            force_ssl=True,
+            proxies={'http': 'localhost:8080', 'https': 'localhost:8080'}
+        )
+
+        response = requester.open_request()
+
+        self.assertEqual(response.status_code, 200)
+
 if __name__ == '__main__':
     unittest.main()

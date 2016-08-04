@@ -32,7 +32,8 @@ class Requester(object):
                  referer=None,
                  accept=None,
                  lang=None,
-                 force_ssl=None):
+                 force_ssl=None,
+                 **kwargs):
         """
         Constructor
         
@@ -46,6 +47,8 @@ class Requester(object):
         self._agent = agent
         self._referer = referer
         self._accept = accept
+
+        self._req_kwargs = kwargs
 
         if not agent:
             self._agent = self.DEFAULT_AGENT
@@ -150,14 +153,16 @@ class Requester(object):
                     url,
                     data=post_fields,
                     timeout=timeout,
-                    verify=self._verify
+                    verify=self._verify,
+                    **self._req_kwargs
                 )
 
             else:
                 response = self.opener.get(
                     url,
                     timeout=timeout,
-                    verify=self._verify
+                    verify=self._verify,
+                    **self._req_kwargs
                 )
 
         except urllib3.exceptions.HTTPError:
