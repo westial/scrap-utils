@@ -9,7 +9,7 @@ from requester.Requester import Requester
 ROOT_URL_TEST = 'https://localhost/test/scrap-utils'
 
 
-class TestCases(unittest.TestCase):
+class TestRequester(unittest.TestCase):
 
     def setUp(self):
         self.submit_content = 'OK'
