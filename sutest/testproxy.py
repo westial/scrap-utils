@@ -21,22 +21,15 @@ class TestProxy(unittest.TestCase):
         requester = Requester(host=GET_IP_URL, force_ssl=True)
         response = requester.open_request()
         home_ip = requester.read_response(response=response)
-        proxies = self._start_proxy(9153)
-        start_new_thread(self._request_through_proxy, (proxies,))
-
-    def _request_through_proxy(self, proxies):
+        proxy = TorProxy(host='127.0.0.1', port=15001, exit_nodes=['ru'])
         requester = Requester(
             host=GET_IP_URL,
             force_ssl=True,
-            proxies=proxies
+            proxies=proxy.proxy_config
         )
         response = requester.open_request()
-        self._proxy_ip = requester.read_response(response=response)
-
-    @classmethod
-    def _start_proxy(cls, socks_port):
-        proxy = TorProxy(host='127.0.0.1', socks_port=socks_port)
-        return proxy.proxy_config
+        proxy_ip = requester.read_response(response=response)
+        self.assertNotEqual(home_ip, proxy_ip, 'Different IP')
 
 if __name__ == '__main__':
     unittest.main()
