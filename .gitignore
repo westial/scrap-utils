@@ -11,3 +11,4 @@ gen
 **/*.py.bak
 py3
 tmp
+**/settings.py

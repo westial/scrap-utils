@@ -10,69 +10,25 @@ import stem
 from stem.control import Controller
 
 from proxies.superproxy import Proxy
+from proxies.torlib.torcontrol import TorControl
 
 
 class TorProxy(Proxy):
 
-    def __init__(self, host, port: int, **tor_kwargs):
-        self._host = host
+    def __init__(
+            self,
+            address,
+            data_dir,
+            port: int,
+            socks_port: int,
+            **tor_kwargs
+    ):
+        self._address = address
+        self._data_dir = data_dir
         self._control_port = port
+        self._socks_port = socks_port
         self._tor_kwargs = tor_kwargs
         self._tor = None
-
-    class TorControl(object):
-
-        def __init__(
-                self,
-                port=15001,
-                address='127.0.0.1',
-                socks_port=9051,
-                exit_nodes: list=None
-        ):
-            self._address = address
-            self._port = port
-            self._socks_port = socks_port
-            self._exit_nodes = exit_nodes
-
-        @property
-        def address(self):
-            return self._address
-
-        @property
-        def port(self):
-            return self._port
-
-        @property
-        def socks_port(self):
-            return self._socks_port
-
-        def _set_exit_nodes(self):
-            if self._exit_nodes:
-                conf_value = ','.join(self._exit_nodes)
-                conf_value = '{{!s}}'.format(conf_value)
-                self._controller.set_conf('ExitNodes', conf_value)
-
-        def __enter__(self):
-            try:
-                self._controller = Controller.from_port(
-                    address=self._address,
-                    port=self._port
-                )
-                # HERE: https://stem.torproject.org/faq.html#how-do-i-request-a-new-identity-from-tor
-                self._controller.authenticate()
-                self._set_exit_nodes()
-
-            except stem.SocketError as exc:
-                raise ConnectionError(
-                    "Unable to connect tor on control port {!s}: {!s}".format(
-                        self._port,
-                        str(exc)
-                    )
-                )
-            return self
-
-        def __exit__(self, exc_type, exc_value, traceback):
-            self._controller.close()
 
     def _build_config(self):
         return {
@@ -88,9 +44,11 @@ class TorProxy(Proxy):
 
     @property
     def proxy_config(self):
-        with self.TorControl(
-                address=self._host,
+        with TorControl(
+                address=self._address,
+                data_dir=self._data_dir,
                 port=self._control_port,
+                socks_port=self._socks_port,
                 **self._tor_kwargs
         ) as self._tor:
             return self._build_config()
