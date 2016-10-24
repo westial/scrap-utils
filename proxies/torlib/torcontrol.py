@@ -11,21 +11,26 @@ class TorControl(object):
 
     def __init__(
             self,
-            data_dir,
+            data_dir_root,
             address,
             port=15000,
             socks_port=9050,
+            exit_nodes: str = None,
             **kwargs
     ):
         self._address = address
-        self._data_dir = data_dir
+        self._data_dir_root = data_dir_root
         self._port = port
         self._socks_port = socks_port
+        self._exit_nodes = exit_nodes
         self._kwargs = kwargs
+
+    def _build_exit_nodes(self):
+        return ','.join(self._exit_nodes)
 
     @property
     def data_dir(self):
-        return self._data_dir
+        return self._data_dir_root
 
     @property
     def address(self):
@@ -39,18 +44,19 @@ class TorControl(object):
     def socks_port(self):
         return self._socks_port
 
-    def _start_tor(self):
-        subprocess.Popen(
-            [
+    def start(self):
+        args = [
                 "{!s}/{!s}".format(SH_TOR_DIR, SH_TOR_START),
                 str(self._port),
                 str(self._socks_port),
-                self._data_dir
+                self._data_dir_root
             ]
-        )
+        if self._exit_nodes:
+            args.append(self._build_exit_nodes())
+        subprocess.Popen(args)
         time.sleep(self.DELAY_SEC)
 
-    def _exit_tor(self):
+    def exit(self):
         subprocess.Popen(
             [
                 "{!s}/{!s}".format(SH_TOR_DIR, SH_TOR_EXIT),
@@ -58,10 +64,3 @@ class TorControl(object):
             ]
         )
         time.sleep(self.DELAY_SEC)
-
-    def __enter__(self):
-        self._start_tor()
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self._exit_tor()
