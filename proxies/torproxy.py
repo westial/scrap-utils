@@ -1,8 +1,5 @@
 """
-Proxy provider based on tor controller. First you need to start at least one
-instance of tor and provide the configuration to this constructor.
-
-Check https://github.com/jseidl/Multi-TOR for multiple tor instances.
+Proxy provider based on tor controller. Tor command line application is mandatory.
 """
 import time
 from _thread import start_new_thread
