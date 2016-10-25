@@ -17,6 +17,7 @@ class TorProxy(Proxy):
             port: int,
             socks_port: int,
             exit_nodes: list=None,
+            tor_scripts_dir=None,
             **tor_kwargs
     ):
         self._address = address
@@ -25,6 +26,7 @@ class TorProxy(Proxy):
         self._socks_port = socks_port
         self._exit_nodes = exit_nodes
         self._tor_kwargs = tor_kwargs
+        self._tor_scripts_dir = tor_scripts_dir
         self._tor = None
         self._alive = None
 
@@ -49,6 +51,7 @@ class TorProxy(Proxy):
                 port=self._control_port,
                 socks_port=self._socks_port,
                 exit_nodes=self._exit_nodes,
+                tor_scripts_dir=self._tor_scripts_dir,
                 **self._tor_kwargs
         )
         self._tor.start()

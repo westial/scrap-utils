@@ -1,9 +1,6 @@
 """Function test methods testing the image samples
 """
 import sys
-from _thread import start_new_thread
-
-import time
 
 from proxies.torproxy import TorProxy
 
@@ -26,7 +23,8 @@ class TestProxy(unittest.TestCase):
                 address='127.0.0.1',
                 port=15000,
                 socks_port=9050,
-                exit_nodes=['{nl}']
+                exit_nodes=['{nl}'],
+                tor_scripts_dir='../proxies/torlib'
         ) as proxy:
             requester = Requester(
                 host=GET_IP_URL,
