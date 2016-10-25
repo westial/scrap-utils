@@ -12,3 +12,4 @@ gen
 py3
 py3env
 tmp
+**/settings.py
