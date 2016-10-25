@@ -14,6 +14,7 @@ setup(
     description='Python utils for scraping purposes.',
     install_requires=[
         'urllib3',
-        'requests'
+        'requests',
+        'requests[socks]'
     ]
 )
