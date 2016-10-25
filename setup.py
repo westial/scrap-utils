@@ -6,7 +6,7 @@ version = version_file.readline()
 setup(
     name='scrap-utils',
     version=version,
-    packages=['requester'],
+    packages=['requester', 'proxies'],
     url='https://github.com/westial/scrap-utils',
     license='GPL v3',
     author='Jaume Mila',
