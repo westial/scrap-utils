@@ -16,5 +16,8 @@ setup(
         'urllib3',
         'requests',
         'requests[socks]'
-    ]
+    ],
+    package_data={
+        '': ['*.sh', '*.exp'],
+    }
 )
